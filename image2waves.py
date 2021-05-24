@@ -8,6 +8,10 @@ import datetime
 import os
 from collections import namedtuple
 
+
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning) #Temporary fix
+
 filter_types = ['sobel', 'canny']
 
 def filter_image(image, filter, *args):
