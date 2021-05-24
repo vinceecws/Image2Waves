@@ -1,85 +1,39 @@
-import torch
-import numpy as np
 from matplotlib import pyplot as plt
-import scipy.stats as stats
-import math
+import torch
+import scipy.signal as signal
 import cv2
+import argparse
+import time
 
-def x_n(n, coeff, phi):
+def convert_to_points(imslice, threshold=None, bucketize=False, factor=1):
 
-    expo = torch.zeros(coeff.shape[0], 2)
-    expo[:, 1] = ((2 * np.pi) / coeff.shape[0]) * n * torch.arange(coeff.shape[0]) + phi
-
-    return torch.mean(coeff * torch.exp(torch.view_as_complex(expo)))
-
-def deconstruct_X(data):
-
-    fourier = torch.fft.rfft(data)
-
-    return fourier 
-
-def reconstruct_X(data, threshold, order=None):
-
-    # assert order is None or (order > 0 and order <= data.shape[0])
-    assert threshold >= 0, "Threshold for high-coefficient-pass filter must be >= 0"
-
-    # coeff = fourier.abs() # Magnitude of Fourier coefficients
-    # phi = fourier.angle() # Angle of Fourier coefficients
-
-    # if order is not None: #Extract the best descriptors
-    #     best_ind = coeff[:coeff.shape[0] // 2].topk(order).indices
-    #     print(best_ind)
-    #     print(coeff)
-    #     coeff = coeff[best_ind]
-    #     phi = phi[best_ind]
-
-    # return torch.tensor([x_n(i, coeff, phi).real for i in range(data.shape[0])]), fourier
-
-    reconstructed = data.clone()
-    reconstructed[torch.where(reconstructed.abs() < threshold)] = 0 #Zero out frequency components below a threshold
-    reconstructed = torch.fft.irfft(reconstructed, data.numel()) #Inverse FFT for reconstruction
-
-    return reconstructed
-
-def plot_normal(mean=0.0, std=1.0, lower_bound=-3.0, upper_bound=3.0, num_points=100, to_torch=False):
-
-    assert lower_bound < upper_bound, "Lower bound must be strictly < upper bound"
-
-    x = np.linspace(lower_bound, upper_bound, num_points)
-    y = stats.norm.pdf(x, mean, std)
-
-    if to_torch:
-        x = torch.tensor(x)
-        y = torch.tensor(y)
-
-    return x, y
-
-def ed_noise_uniform(data, lower_bound=0.0, upper_bound=1.0):
-    assert lower_bound < upper_bound, "Lower bound must be strictly < upper bound"
-    
-    return data + (upper_bound - lower_bound) * torch.rand(data.shape) + lower_bound
-
-def convert_to_points(imslice, threshold=None, bucketize=False):
-
-    if threshold is not None:
+    if threshold is not None and threshold >= 0 and threshold <= 255:
         imslice = torch.nn.functional.threshold(imslice, threshold, 0) #Filter out noise (Non-maxima suppression)
 
+    ############################################################################################################
+    newim = torch.nn.functional.interpolate(imslice.unsqueeze(0).unsqueeze(0), scale_factor=(1, 1 / factor)).squeeze() #Downsample with interpolation
+    ############################################################################################################
+
     #Generate height-weighted grid for each column
-    height = torch.arange(-(imslice.shape[0] // 2), imslice.shape[0] // 2 + imslice.shape[0] % 2)
+    height = torch.arange(-(newim.shape[0] // 2), newim.shape[0] // 2 + newim.shape[0] % 2)
     height = torch.unsqueeze(height, 1).flip(0)
-    height = torch.tile(height, (imslice.shape[1],))
+    height = torch.tile(height, (newim.shape[1],))
 
     #Weight pixels and select best point for each column
-    points = (imslice / imslice.max())
+    points = (newim / newim.max())
     points = torch.sum(points * height, dim=0) / torch.sum(points, dim=0) #Height-weighted average among nonzero pixels
     points = points.nan_to_num(nan=0.0) #After division, completely empty columns will result in NaN due to sum = 0 / nonzero_pixel_count = 0, so convert NaN to 0.0
+
+    ############################################################################################################
+    points = torch.tensor(signal.resample(points, imslice.shape[1])).clamp(height.min(), height.max()) #Upsample using Fourier method and clamp any over/undershoot
+    ############################################################################################################
 
     if bucketize:
         points = torch.Tensor.int(torch.round(points)) #Convert real-numbered points to nearest-integer pixel buckets
 
     return points
 
-def image2waves(image, slice_height, threshold=None):
+def image2waves(image, slice_height, threshold=None, factor=4):
     '''
     Image2Waves
     Steps:
@@ -104,13 +58,13 @@ def image2waves(image, slice_height, threshold=None):
     divisions = im.shape[0] // slice_height
     remainder_height = im.shape[0] % slice_height
 
-    for start_ind in np.arange(0, slice_height * divisions, slice_height):
-        points = convert_to_points(im[start_ind : start_ind + slice_height, :], threshold=threshold, bucketize=True)
+    for start_ind in torch.arange(0, slice_height * divisions, slice_height):
+        points = convert_to_points(im[start_ind : start_ind + slice_height, :], threshold=threshold, bucketize=True, factor=factor)
         points = (slice_height - 1) - (points + slice_height // 2) #Invert points and y-transform to center
         newim[start_ind : start_ind + slice_height, :] = torch.nn.functional.one_hot(points.long(), slice_height).transpose(1, 0) * 255
 
     if remainder_height > 0:
-        points = convert_to_points(im[slice_height * divisions :, :], threshold=threshold, bucketize=True)
+        points = convert_to_points(im[slice_height * divisions :, :], threshold=threshold, bucketize=True, factor=factor)
         points = (remainder_height - 1) - (points + remainder_height // 2) #Invert points and y-transform to center
         newim[slice_height * divisions :, :] = torch.nn.functional.one_hot(points.long(), remainder_height).transpose(1, 0) * 255
 
@@ -119,11 +73,21 @@ def image2waves(image, slice_height, threshold=None):
 
 if __name__ == '__main__':
 
-    im = cv2.imread('image2_sobel.png')
+    parser = argparse.ArgumentParser()
+    parser.add_argument('imdir', help='Directory for image to be transformed')
+    parser.add_argument('slice_height', nargs='?', default=100, type=int, help='Height (in pixels) of slices of the original image to be reconstructed as waves. Must be a positive integer <= image height  (default: %(default)s)')
+    parser.add_argument('threshold', nargs='?', default=-1, type=int, help='If given, the intensity threshold below which pixels will be zeroed, such that 0 <= threshold <= 255. Values beyond range will be ignored.')
+    parser.add_argument('factor', nargs='?', default=1, type=int, help='The factor that will be used to downsample the horizontal axis (width) of the image, and upsampled using the Fourier method. (default: %(default)s)')
+
+    args = parser.parse_args()
+
+    im = cv2.imread(args.imdir)
     im = cv2.cvtColor(im, cv2.COLOR_RGB2GRAY)
     im = torch.tensor(im)
 
-    newim = image2waves(im, 150, threshold=20)
+    start = time.time()
+    newim = image2waves(im, args.slice_height, threshold=args.threshold, factor=args.factor)
+    print('Time elapsed: {:.2f}ms'.format((time.time() - start) * 1000))
 
     plt.imshow(newim, cmap='gray')
     plt.show()
