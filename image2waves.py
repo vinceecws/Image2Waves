@@ -8,7 +8,6 @@ import datetime
 import os
 from collections import namedtuple
 
-
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning) #Temporary fix
 
