@@ -10,7 +10,7 @@ if __name__ == '__main__':
     parser.add_argument('dir', help='Directory for image to be transformed')
     parser.add_argument('threshold_min', nargs='?', default=100, type=int, help='Min threshold for hysteresis (default: %(default)s)')
     parser.add_argument('threshold_max', nargs='?', default=300, type=int, help='Max threshold for hysteresis (default: %(default)s)')
-    parser.add_argument('--save', action='store_true', help='Flag. Save transformed image in current directory. Filename will be in the format of canny_img_dateandtime.png')
+    parser.add_argument('--save', action='store_true', help='Flag. Saves transformed image in current directory. Filename will be in the format of canny_img_dateandtime.png')
     args = parser.parse_args()
 
     img = cv2.imread(args.dir)

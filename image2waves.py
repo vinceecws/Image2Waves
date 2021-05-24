@@ -150,7 +150,7 @@ if __name__ == '__main__':
     parser.add_argument('--filter', nargs='+', default=None, help='Filter that is used prior to wave reconstruction. First argument must be one of {}. Subsequent arguments are: \
         For Sobel, arg1 and arg2 are the size (in pixels) of the horizontal and vertical kernels, respectively.\
         For Canny, arg1 and arg2 are the minimum and maximum threshold values, respectively, used in non-maxima suppression'.format(filter_types))
-    parser.add_argument('--verbose', action='store_true', help='If this flag is set, prints summary report upon completion.')
+    parser.add_argument('--verbose', action='store_true', help='Flag. Prints summary report upon completion.')
     parser.add_argument('--save', action='store_true', help='Flag. Save reconstructed image in current directory. Filename will be in the format of image2waves_dateandtime.png')
 
     args = parser.parse_args()

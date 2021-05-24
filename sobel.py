@@ -10,7 +10,7 @@ if __name__ == '__main__':
     parser.add_argument('dir', help='Directory for image to be transformed')
     parser.add_argument('kernel_size_x', nargs='?', default=3, type=int, help='Sobel kernel size for X, values from [1, 3, 5, 7] (default: %(default)s)')
     parser.add_argument('kernel_size_y', nargs='?', default=3, type=int, help='Sobel kernel size for Y, values from [1, 3, 5, 7] (default: %(default)s)')
-    parser.add_argument('--save', action='store_true', help='Flag. Save transformed image in current directory. Filename will be in the format of sobel_img_dateandtime.png')
+    parser.add_argument('--save', action='store_true', help='Flag. Saves transformed image in current directory. Filename will be in the format of sobel_img_dateandtime.png')
     args = parser.parse_args()
 
     if args.kernel_size_x not in [1, 3, 5, 7] or args.kernel_size_y not in [1, 3, 5, 7]:
