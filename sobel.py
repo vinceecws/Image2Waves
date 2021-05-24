@@ -2,7 +2,7 @@ import numpy as np
 import cv2
 import argparse
 import datetime
-import os.path as path
+import os
 from matplotlib import pyplot as plt
 
 if __name__ == '__main__':
@@ -10,7 +10,7 @@ if __name__ == '__main__':
     parser.add_argument('dir', help='Directory for image to be transformed')
     parser.add_argument('kernel_size_x', nargs='?', default=3, type=int, help='Sobel kernel size for X, values from [1, 3, 5, 7] (default: %(default)s)')
     parser.add_argument('kernel_size_y', nargs='?', default=3, type=int, help='Sobel kernel size for Y, values from [1, 3, 5, 7] (default: %(default)s)')
-    parser.add_argument('--save', help='Folder to save transformed image')
+    parser.add_argument('--save', action='store_true', help='Flag. Save transformed image in current directory. Filename will be in the format of sobel_img_dateandtime.png')
     args = parser.parse_args()
 
     if args.kernel_size_x not in [1, 3, 5, 7] or args.kernel_size_y not in [1, 3, 5, 7]:
@@ -25,7 +25,7 @@ if __name__ == '__main__':
     sobel = cv2.addWeighted(abs_x, 0.5, abs_y, 0.5,0) #Overlay x and y
 
     if args.save:
-        cv2.imwrite(path.join(args.save, 'sobel_img_{}.png'.format(datetime.datetime.now())), sobel)
+        cv2.imwrite(os.path.join(os.getcwd(), 'sobel_img_{}.png'.format(datetime.datetime.now())), sobel)
 
     plt.subplot(121),plt.imshow(img, cmap='gray')
     plt.title('Original Image'), plt.xticks([]), plt.yticks([])
