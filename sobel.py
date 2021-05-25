@@ -16,8 +16,7 @@ if __name__ == '__main__':
     if args.kernel_size_x not in [1, 3, 5, 7] or args.kernel_size_y not in [1, 3, 5, 7]:
         raise ValueError('Sobel kernel size must be either one of 1, 3, 5 or 7')
 
-    img = cv2.imread(args.dir)
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    im = cv2.imread(imdir, 0) #Read as grayscale
     sobel_x = cv2.Sobel(img, cv2.CV_64F, 1, 0, ksize=args.kernel_size_x, scale=1)
     sobel_y = cv2.Sobel(img, cv2.CV_64F, 0, 1, ksize=args.kernel_size_y, scale=1)
     abs_x = cv2.convertScaleAbs(sobel_x)

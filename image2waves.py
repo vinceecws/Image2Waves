@@ -46,15 +46,18 @@ def filter_image(image, filter, *args):
 
 def load_image_and_preprocess(imdir, args_filter):
 
-    im = cv2.imread(imdir)
-    im = cv2.cvtColor(im, cv2.COLOR_RGB2GRAY)
+    im = cv2.imread(imdir, 0) #Read as grayscale
 
     if args_filter is not None:
-        im, filter_params = filter_image(im, args_filter[0], *[int(arg) for arg in args_filter[1:]])
-        return torch.tensor(im), filter_params
+        newim, filter_params = filter_image(im, args_filter[0], *[int(arg) for arg in args_filter[1:]])
+        return torch.tensor(newim), im, filter_params
 
     else:
-        return torch.tensor(im)
+        return torch.tensor(newim), im
+
+def postprocess_image(im, alpha): #Takes a single channel image and a corresponding alpha channel and return in Color + Alpha (RGBA/BGRA)format
+
+    return torch.cat([im.unsqueeze(2).tile((1, 1, 3)), alpha.unsqueeze(2)], axis=2)
 
 
 def print_summary(start_time, slice_height, threshold, factor, filter_params=None):
@@ -75,6 +78,26 @@ def print_summary(start_time, slice_height, threshold, factor, filter_params=Non
     print('     Threshold: {}'.format(threshold))
     print('     Factor: {}'.format(factor))
     print('============================================================================================================')
+
+def plot_results(origim, newim):
+
+    plt.subplot(131)
+    plt.title('Original Image in Grayscale')
+    plt.imshow(origim, cmap='gray')
+    plt.axis('off')
+
+    plt.subplot(132)
+    plt.title('Original Image Reconstructed as Waveforms')
+    plt.imshow(newim)
+    plt.axis('off')
+
+    plt.subplot(133)
+    plt.title('Both Overlaid')
+    plt.imshow(origim, cmap='gray')
+    plt.imshow(newim)
+    plt.axis('off')
+
+    plt.show()
 
 def convert_to_points(imslice, threshold=None, bucketize=False, factor=1):
 
@@ -126,6 +149,7 @@ def image2waves(image, slice_height, threshold=None, factor=4):
     assert slice_height > 0 and slice_height <= im.shape[0], "Slice height must be any integer > 0 and <= image height"
 
     newim = torch.zeros_like(im)
+    alpha = torch.zeros_like(im)
 
     divisions = im.shape[0] // slice_height
     remainder_height = im.shape[0] % slice_height
@@ -140,7 +164,9 @@ def image2waves(image, slice_height, threshold=None, factor=4):
         points = (remainder_height - 1) - (points + remainder_height // 2) #Invert points and y-transform to center
         newim[slice_height * divisions :, :] = torch.nn.functional.one_hot(points.long(), remainder_height).transpose(1, 0) * 255
 
-    return newim
+    alpha = newim.clone() #Alpha channel so that wave forms are opaque, and the rest are transparent
+
+    return newim, alpha
 
 
 if __name__ == '__main__':
@@ -158,10 +184,11 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    im, filter_params = load_image_and_preprocess(args.imdir, args.filter)
+    newim, origim, filter_params = load_image_and_preprocess(args.imdir, args.filter)
 
     start = time.time()
-    newim = image2waves(im, args.slice_height, threshold=args.threshold, factor=args.factor)
+    newim, alpha = image2waves(newim, args.slice_height, threshold=args.threshold, factor=args.factor)
+    newim = postprocess_image(newim, alpha)
 
     if args.verbose:
         print_summary(start, args.slice_height, args.threshold, args.factor, filter_params=filter_params if filter_params else None)
@@ -169,5 +196,4 @@ if __name__ == '__main__':
     if args.save:
         cv2.imwrite(os.path.join(os.getcwd(), 'image2waves_{}.png'.format(datetime.datetime.now())), newim.numpy())
 
-    plt.imshow(newim, cmap='gray')
-    plt.show()
+    plot_results(origim, newim)

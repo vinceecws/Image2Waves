@@ -13,8 +13,7 @@ if __name__ == '__main__':
     parser.add_argument('--save', action='store_true', help='Flag. Saves transformed image in current directory. Filename will be in the format of canny_img_dateandtime.png')
     args = parser.parse_args()
 
-    img = cv2.imread(args.dir)
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    im = cv2.imread(imdir, 0) #Read as grayscale
     canny = cv2.Canny(img, args.threshold_min, args.threshold_max)
 
     if args.save:
