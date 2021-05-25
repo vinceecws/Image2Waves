@@ -3,7 +3,7 @@ Work in progress! This project is for participation in the Art of Neuroscience c
 
 To give it a go, clone the repo, then all you need to start playing around with converting images to waveforms is `python image2waves.py [...args]`!
 
-For information on the possible arguments, do `python image2waves.py -h`.
+For information on the possible arguments, do `python image2waves.py -h`, or refer to [**What are the parameters?**](#what-are-the-parameters)
 
 ### A short example to get you started:
 
