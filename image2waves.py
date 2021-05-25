@@ -53,7 +53,7 @@ def load_image_and_preprocess(imdir, args_filter):
         return torch.tensor(newim), im, filter_params
 
     else:
-        return torch.tensor(newim), im
+        return torch.tensor(im), im
 
 def postprocess_image(im, alpha): #Takes a single channel image and a corresponding alpha channel and return in Color + Alpha (RGBA/BGRA)format
 
@@ -105,7 +105,7 @@ def convert_to_points(imslice, threshold=None, bucketize=False, factor=1):
         imslice = torch.nn.functional.threshold(imslice, threshold, 0) #Filter out noise (Non-maxima suppression)
 
     ############################################################################################################
-    newim = torch.nn.functional.interpolate(imslice.unsqueeze(0).unsqueeze(0), scale_factor=(1, 1 / factor)).squeeze() #Downsample with interpolation
+    newim = torch.nn.functional.interpolate(imslice.unsqueeze(0).unsqueeze(0), scale_factor=(1, 1 / factor)).squeeze(0).squeeze(0) #Downsample with interpolation
     ############################################################################################################
 
     #Generate height-weighted grid for each column
@@ -146,7 +146,7 @@ def image2waves(image, slice_height, threshold=None, factor=4):
 
     assert im.dim() == 2, "Image must only contain a single channel, only width and height dimensions are allowed. Image is assumed to be H x W."
 
-    assert slice_height > 0 and slice_height <= im.shape[0], "Slice height must be any integer > 0 and <= image height"
+    assert slice_height > 1 and slice_height <= im.shape[0], "Slice height must be any integer > 1 and <= image height"
 
     newim = torch.zeros_like(im)
     alpha = torch.zeros_like(im)
@@ -173,9 +173,9 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('imdir', help='Directory for image to be transformed')
-    parser.add_argument('--slice_height', nargs=1, default=50, type=int, help='Height (in pixels) of slices of the original image to be reconstructed as waves. Must be a positive integer <= image height  (default: %(default)s)')
-    parser.add_argument('--threshold', nargs=1, default=20, type=int, help='Noise filtering. If given, the intensity threshold below which pixels will be zeroed, such that 0 <= threshold <= 255. Values beyond range will be ignored.')
-    parser.add_argument('--factor', nargs=1, default=10, type=int, help='The factor that will be used to downsample the horizontal axis (width) of the image, and upsampled using the Fourier method. (default: %(default)s)')
+    parser.add_argument('--slice-height', default=50, type=int, help='Height (in pixels) of slices of the original image to be reconstructed as waves. Must be a positive integer <= image height  (default: %(default)s)')
+    parser.add_argument('--threshold', default=20, type=int, help='Noise filtering. If given, the intensity threshold below which pixels will be zeroed, such that 0 <= threshold <= 255. Values beyond range will be ignored.')
+    parser.add_argument('--factor', default=10, type=int, help='The factor that will be used to downsample the horizontal axis (width) of the image, and upsampled using the Fourier method. (default: %(default)s)')
     parser.add_argument('--filter', nargs='+', default=None, help='Filter that is used prior to wave reconstruction. First argument must be one of {}. Subsequent arguments are: \
         For Sobel, arg1 and arg2 are the size (in pixels) of the horizontal and vertical kernels, respectively.\
         For Canny, arg1 and arg2 are the minimum and maximum threshold values, respectively, used in non-maxima suppression'.format(filter_types))
