@@ -39,7 +39,7 @@ The plot will show a side-by-side comparison of the before-and-after, plus the o
   <img width="700" alt="waveform reconstructed image" src="https://user-images.githubusercontent.com/19466657/119426081-98f2bc00-bcd6-11eb-8244-22de7b3ed3b0.png">
 </p>
 
-*Note: Typically, it's fine if you see a blank image here. That's because the waveform image is generated as an RGBA with the color **white** and opacity 0 everywhere except for the pixels that form the waves. Which means that the waves could be too thin to be observed without zooming-in, or that the default background color of your image viewer happens to be white. If those are not the cases here, then I suggest you to tweak the filtering parameters or the reconstruction parameters. Specifically, try increasing the density of the waveforms by reducing slice_height.*
+*Note: In some cases, it's possible that you might see a blank image here. That's because the waveform image is generated as an RGBA with the color **white** and opacity 0 everywhere except for the pixels that form the waves. Which means that the waves could be too thin to be observed without zooming-in, or that the default background color of your image viewer happens to be white. If those are not the cases here, then I suggest you to tweak the filtering parameters or the reconstruction parameters. Specifically, try increasing the density of the waveforms by reducing slice_height.*
 
 ### What are the parameters?
 The algorithm is formed by a pipeline of generally two major blocks: **the feature extraction and the reconstruction**.
