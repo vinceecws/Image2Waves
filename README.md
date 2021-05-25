@@ -10,8 +10,10 @@ For information on the possible arguments, do `python image2waves.py -h`.
 Let's assume that I have cloned the repository and have already prepared an image in the same directory which is named "image.jpeg" (any other commonly used extensions that can be loaded by OpenCV works). So `image.jpeg` looks like this:
 
 <p align="center">
-  <img width="800" alt="original image" src="https://user-images.githubusercontent.com/19466657/119424906-621ba680-bcd4-11eb-92cd-35221824f21a.jpeg">
+  <img width="700" alt="original image" src="https://user-images.githubusercontent.com/19466657/119424906-621ba680-bcd4-11eb-92cd-35221824f21a.jpeg">
 </p>
+
+*Image taken from: https://www.aestheticsurgicalarts.com/aesthetic-surgical-arts/close-up-of-beautiful-woman-face/ *
 
 I pull up the shell, navigate to the current directory and do the following: 
 ```
@@ -22,19 +24,19 @@ python image2waves.py image2.jpeg --slice-height 50 --threshold 20 --factor 10 -
 Once the magic happens, you will observe 3 things: 
 1) The shell window will print a summary report that looks like this:
 <p align="center">
-  <img width="800" alt="screenshot of summary report in shell" src="https://user-images.githubusercontent.com/19466657/119425889-339ecb00-bcd6-11eb-91a5-d2be31473726.png">
+  <img width="700" alt="screenshot of summary report in shell" src="https://user-images.githubusercontent.com/19466657/119425889-339ecb00-bcd6-11eb-91a5-d2be31473726.png">
 </p>
 
 2) A plot will pop-up looking like this:
 <p align="center">
-  <img width="800" alt="plots of results" src="https://user-images.githubusercontent.com/19466657/119425988-61840f80-bcd6-11eb-81f7-c9f5fb8fa8ca.png">
+  <img width="700" alt="plots of results" src="https://user-images.githubusercontent.com/19466657/119425988-61840f80-bcd6-11eb-81f7-c9f5fb8fa8ca.png">
 </p>
 
 The plot will show a side-by-side comparison of the before-and-after, plus the overlay.
 
 3) And there will be a new image saved in the current directory named something like `image2waves_2021-05-24 21/18/59.838261.png`, which looks like this:
 <p align="center">
-  <img width="800" alt="waveform reconstructed image" src="https://user-images.githubusercontent.com/19466657/119426081-98f2bc00-bcd6-11eb-8244-22de7b3ed3b0.png">
+  <img width="700" alt="waveform reconstructed image" src="https://user-images.githubusercontent.com/19466657/119426081-98f2bc00-bcd6-11eb-8244-22de7b3ed3b0.png">
 </p>
 
 *Note: Typically, it's fine if you see a blank image here. That's because the waveform image is generated as an RGBA with the color **white** and opacity 0 everywhere except for the pixels that form the waves. Which means that the waves could be too thin to be observed without zooming-in, or that the default background color of your image viewer happens to be white. If those are not the cases here, then I suggest you to tweak the filtering parameters or the reconstruction parameters. Specifically, try increasing the density of the waveforms by reducing slice_height.*
