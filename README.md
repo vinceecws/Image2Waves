@@ -7,13 +7,13 @@ For information on the possible arguments, do `python image2waves.py -h`.
 
 ### A short example to get you started:
 
-Let's assume that I have cloned the repository and have already prepared an image in the same directory which is named "image.jpeg" (any other commonly used extensions that can be loaded by OpenCV works). So `image.jpeg` looks like this:
+Let's assume that I have cloned the repository and have already prepared an image in the same directory which is named `image.jpeg` (any other commonly used extensions that can be loaded by OpenCV works). So `image.jpeg` looks like this:
 
 <p align="center">
   <img width="700" alt="original image" src="https://user-images.githubusercontent.com/19466657/119424906-621ba680-bcd4-11eb-92cd-35221824f21a.jpeg">
 </p>
 
-*Image taken from: https://www.aestheticsurgicalarts.com/aesthetic-surgical-arts/close-up-of-beautiful-woman-face/ *
+*Image taken from: https://www.aestheticsurgicalarts.com/aesthetic-surgical-arts/close-up-of-beautiful-woman-face/*
 
 I pull up the shell, navigate to the current directory and do the following: 
 ```
