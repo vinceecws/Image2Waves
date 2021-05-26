@@ -27,7 +27,7 @@ def filter_image(image, filter, *args):
         sobel_y = cv2.Sobel(image, cv2.CV_64F, 0, 1, ksize=kernel_size_y, scale=1)
         abs_x = cv2.convertScaleAbs(sobel_x)
         abs_y = cv2.convertScaleAbs(sobel_y)
-        sobel = cv2.addWeighted(abs_x, 0.5, abs_y, 0.5,0) #Overlay x and y
+        sobel = cv2.addWeighted(abs_x, 0.5, abs_y, 0.5, 0) #Overlay x and y
 
         _ = namedtuple('Sobel', ['kernel_size_x', 'kernel_size_y'])
         params = _(kernel_size_x, kernel_size_y)
@@ -53,7 +53,7 @@ def load_image_and_preprocess(imdir, args_filter):
         return torch.tensor(newim), im, filter_params
 
     else:
-        return torch.tensor(im), im
+        return torch.tensor(im), im, None
 
 def postprocess_image(im, alpha): #Takes a single channel image and a corresponding alpha channel and return in Color + Alpha (RGBA/BGRA)format
 
@@ -79,19 +79,25 @@ def print_summary(start_time, slice_height, threshold, factor, filter_params=Non
     print('     Factor: {}'.format(factor))
     print('============================================================================================================')
 
-def plot_results(origim, newim):
+def plot_results(origim, newim, filterim=None):
 
-    plt.subplot(131)
+    plt.subplot(221)
     plt.title('Original Image in Grayscale')
     plt.imshow(origim, cmap='gray')
     plt.axis('off')
 
-    plt.subplot(132)
+    if filterim is not None:
+        plt.subplot(222)
+        plt.title('Image After Feature Extraction')
+        plt.imshow(filterim, cmap='gray')
+        plt.axis('off')
+
+    plt.subplot(223)
     plt.title('Original Image Reconstructed as Waveforms')
     plt.imshow(newim)
     plt.axis('off')
 
-    plt.subplot(133)
+    plt.subplot(224)
     plt.title('Both Overlaid')
     plt.imshow(origim, cmap='gray')
     plt.imshow(newim)
@@ -184,10 +190,10 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    newim, origim, filter_params = load_image_and_preprocess(args.imdir, args.filter)
+    filterim, origim, filter_params = load_image_and_preprocess(args.imdir, args.filter)
 
     start = time.time()
-    newim, alpha = image2waves(newim, args.slice_height, threshold=args.threshold, factor=args.factor)
+    newim, alpha = image2waves(filterim, args.slice_height, threshold=args.threshold, factor=args.factor)
     newim = postprocess_image(newim, alpha)
 
     if args.verbose:
@@ -196,4 +202,4 @@ if __name__ == '__main__':
     if args.save:
         cv2.imwrite(os.path.join(os.getcwd(), 'image2waves_{}.png'.format(datetime.datetime.now())), newim.numpy())
 
-    plot_results(origim, newim)
+    plot_results(origim, newim, filterim=filterim if filter_params else None)
