@@ -29,10 +29,10 @@ Once the magic happens, you will observe 3 things:
 
 2) A plot will pop-up looking like this:
 <p align="center">
-  <img width="700" alt="plots of results" src="https://user-images.githubusercontent.com/19466657/119425988-61840f80-bcd6-11eb-81f7-c9f5fb8fa8ca.png">
+  <img width="700" alt="plots of results" src="https://user-images.githubusercontent.com/19466657/119598846-b5aff200-bdb1-11eb-8ea7-de4db9ca4487.png">
 </p>
 
-The plot will show a side-by-side comparison of the before-and-after, plus the overlay.
+The plot will show a side-by-side comparison of the original image, feature-extracted image, wave reconstruction, plus the overlay.
 
 3) And there will be a new image saved in the current directory named something like `image2waves_2021-05-24 21/18/59.838261.png`, which looks like this:
 <p align="center">
